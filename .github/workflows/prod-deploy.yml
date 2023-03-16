@@ -1,0 +1,29 @@
+name: ProdCI
+
+on:
+  push:
+    branches: [main]
+
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [16.14.0]
+
+    steps:
+      - name: Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: echo ${{github.ref}}
+
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: run bash script
+        run: |
+          rsync -rve 'ssh -i ${{ secrets.EC2_SSH_KEY }}' --exclude='node_modules' ~/code/aws-example/ ubuntu@ec2-3-133-128-194.us-east-2.compute.amazonaws.com:/var/www/html/
