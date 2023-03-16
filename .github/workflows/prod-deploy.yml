@@ -10,23 +10,15 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node-version: [16.14.0]
-
     steps:
-      - name: Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.node-version }}
-      - run: echo ${{github.ref}}
-
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: run bash script
-        shell: bash
-        env:
-          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
-        run: |
-          rsync -rve 'ssh -i "$EC2_SSH_KEY"' --exclude='node_modules' ~/code/aws-example/ ubuntu@ec2-3-133-128-194.us-east-2.compute.amazonaws.com:/var/www/html/
+      - name: rsync deployments
+        uses: burnett01/rsync-deployments@5.2.1
+        with:
+          switches: -vzr --exclude="node_modules"
+          remote_path: /var/www/html/
+          remote_host: ec2-3-133-128-194.us-east-2.compute.amazonaws.com
+          remote_user: ubuntu
+          remote_key: ${{ secrets.EC2_SSH_KEY }}
